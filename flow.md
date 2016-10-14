@@ -350,3 +350,50 @@ ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS
 3zu83wmdhyzlt1ruymfdjho7e *  manager1  Ready   Active        Leader
 9scap2ld35nacnr0veuu7fk9b    worker1   Ready   Active
 ```
+
+# Logging (ELK)
+## [jpetazzo](https://jpetazzo.github.io/orchestration-workshop/#119)
+
+```
+$ docker network create --driver overlay logging
+
+$ docker service create --network logging --name elasticsearch elasticsearch:2.4.0
+
+$ docker service create --network logging --name kibana --publish 5601:5601 \
+     -e ELASTICSEARCH_URL=http://elasticsearch:9200 kibana:4.6.0
+$ docker service create --network logging --name logstash -p 12201:12201/udp \
+       logstash:2.4.0 -e "$(cat ./elk/logstash.conf)"
+```
+
+## [Codeship blog](https://blog.codeship.com/monitoring-docker-containers-with-elasticsearch-and-cadvisor/)
+
+```
+$ docker network create monitoring -d overlay
+
+$ docker service create \
+  --network=monitoring \
+  --mount type=volume,target=/usr/share/elasticsearch/data \
+  --constraint node.hostname==worker1 \
+  --name elasticsearch \
+  elasticsearch:2.4.0
+
+$ docker service create \
+  --network=monitoring \
+  -e ELASTICSEARCH_URL="http://elasticsearch:9200" \
+  -p 5601:5601 \
+  --name kibana \
+  kibana:4.6.0
+
+$ docker service create \
+  --network=monitoring \
+  --mode global \
+  --mount type=bind,source=/,target=/rootfs,readonly=true \
+  --mount type=bind,source=/var/run,target=/var/run,readonly=false \
+  --mount type=bind,source=/sys,target=/sys,readonly=true \
+  --mount type=bind,source=/var/lib/docker/,target=/var/lib/docker,readonly=true \
+  --name cadvisor \
+  google/cadvisor:latest \
+  -storage_driver=elasticsearch \
+  -storage_driver_es_host="http://elasticsearch:9200"
+```
+

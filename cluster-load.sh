@@ -16,7 +16,12 @@ function joinl { local IFS="$1 " ; shift ; echo "$*" ; }
 s=$(joinl ,  ${nodes[@]})
 echo "Loading images on: [${s}]"
 
-images=($(ls -d *.tar))
+if [[ -z "${@:2}" ]]; then 
+    images=($(ls -d *.tar))
+else
+    images=(${@:2})
+fi
+
 
 for node in "${nodes[@]}" 
 do 
