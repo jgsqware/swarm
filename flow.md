@@ -357,11 +357,11 @@ ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS
 ```
 $ docker network create --driver overlay logging
 
-$ docker service create --network logging --name elasticsearch elasticsearch:2.4.0
+$ docker service create --network logging -l swarm.demo.logging=true --name elasticsearch elasticsearch:2.4.0
 
-$ docker service create --network logging --name kibana --publish 5601:5601 \
+$ docker service create --network logging -l swarm.demo.logging=true --name kibana --publish 5601:5601 \
      -e ELASTICSEARCH_URL=http://elasticsearch:9200 kibana:4.6.0
-$ docker service create --network logging --name logstash -p 12201:12201/udp \
+$ docker service create --network logging -l swarm.demo.logging=true --name logstash -p 12201:12201/udp \
        logstash:2.4.0 -e "$(cat ./elk/logstash.conf)"
 ```
 
